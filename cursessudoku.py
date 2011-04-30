@@ -37,7 +37,7 @@ class CursesSudoku(object):
     def draw(self):
         for i, val in enumerate(self.sudoku.board):
             x, y = self.window_xy(i)
-            c = ' ' if val == 0 else str(val)
+            c = '.' if val == 0 else str(val)
             self.window.addch(y, x, ord(c), curses.color_pair(1) | self.PRINT_MODE)
 
     def run(self):
@@ -46,14 +46,13 @@ class CursesSudoku(object):
             x, y = self.window_xy(self.active_i)
             self.window.move(y, x)
             c = self.window.getch()
-            move = False
             if c == ord('q'):
                 break
             elif c == curses.KEY_UP:
                 if self.active_i > 8:
                     self.active_i -= 9
             elif c == curses.KEY_DOWN:
-                if self.active_i < 73:
+                if self.active_i < 72:
                     self.active_i += 9
             elif c == curses.KEY_LEFT:
                 if self.active_i % 9 > 0:
@@ -61,6 +60,18 @@ class CursesSudoku(object):
             elif c == curses.KEY_RIGHT:
                 if self.active_i % 9 < 8:
                     self.active_i += 1
+            elif c == curses.KEY_DC:
+                self.set_value(self.active_i, 0)
+            elif ord('1') <= c <= ord('9'):
+                val = c - 48
+                self.set_value(self.active_i, val)
+
+    def set_value(self, i, val):
+        self.sudoku.board[i] = val
+        x, y = self.window_xy(i)
+        self.window.move(y, x)
+        c = '.' if val == 0 else str(val)
+        self.window.addch(y, x, ord(c), curses.color_pair(1) | self.PRINT_MODE)
 
     def quit(self):
         curses.nocbreak()
