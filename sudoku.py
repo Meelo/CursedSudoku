@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import string
+
+# index groups for each row, column and 3x3 box
+ROW_GROUP_INDICES = [range(9 * r, 9 * r + 9) for r in range(9)]
+COL_GROUP_INDICES = [range(r, r + 81, 9) for r in range(9)]
+__BOX_INC = (0, 1, 2, 9, 10, 11, 18, 19, 20)
+__BOX_START = (0, 3, 6, 27, 30, 33, 54, 57, 60)
+BOX_GROUP_INDICES = [[s + i for i in __BOX_INC] for s in __BOX_START]
 
 class InvalidBoardException(Exception):
     def __init__(self, reason):
@@ -9,15 +15,42 @@ class InvalidBoardException(Exception):
     def __str__(self):
         return repr(self.reason)
 
+# every 9 tile group (of indices) on board
+def _board_groups():
+    for g in ROW_GROUP_INDICES:
+        yield g
+    for g in COL_GROUP_INDICES:
+        yield g
+    for g in BOX_GROUP_INDICES:
+        yield g
+
+# dictionary of index -> groups (of indices) where tile index is found
+_in_groups = {}
+for group in _board_groups():
+    for i in group:
+        if not _in_groups.has_key(i):
+            _in_groups[i] = []
+        _in_groups[i].append(group)
+
+def related_groups(i):
+    """return all index groups which tile index belongs"""
+    return _in_groups[i]
+
 class Sudoku(object):
     def __init__(self):
         self.board = [0 for x in range(81)]
+
+    def valid_move(self, index, val):
+        for group in related_groups(index):
+            if any(self.board[i] == val for i in group if i != index):
+                return False
+        return True
 
     def load_from_file(self, filename):
         with open(filename, 'r') as f:
             board_data = f.read()
         board_data = [int(c) for c in board_data if c in '0123456789']
-       
+
         if len(board_data) != 81:
             raise InvalidBoardException('File contains invalid data')
 

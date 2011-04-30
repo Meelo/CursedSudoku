@@ -69,6 +69,8 @@ class CursesSudoku(object):
                 self.set_value(self.active_i, val)
 
     def set_value(self, i, val):
+        if val != 0 and not self.sudoku.valid_move(i, val):
+            return
         self.sudoku.board[i] = val
         x, y = self.window_xy(i)
         self.window.move(y, x)
