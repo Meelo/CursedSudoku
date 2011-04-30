@@ -16,16 +16,12 @@ class Sudoku(object):
     def load_from_file(self, filename):
         with open(filename, 'r') as f:
             board_data = f.read()
-        all_chars = string.maketrans('', '')
-        no_digits = all_chars.translate(all_chars, string.digits)
-        board_data = board_data.translate(all_chars, no_digits)
-
-        if len(board_data) != 81 or not board_data.isalnum():
+        board_data = [int(c) for c in board_data if c in '0123456789']
+       
+        if len(board_data) != 81:
             raise InvalidBoardException('File contains invalid data')
 
-        for i in range(len(board_data)):
-            self.board[i] = ord(board_data[i]) - ord('0')
-            
+        self.board = board_data
 
 if __name__ == '__main__':
     board = Sudoku()
