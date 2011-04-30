@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import string
 
-class InvalidBoard(object):
+class InvalidBoardException(Exception):
     def __init__(self, reason):
         self.reason = reason
 
@@ -20,8 +20,8 @@ class Sudoku(object):
         no_digits = all_chars.translate(all_chars, string.digits)
         board_data = board_data.translate(all_chars, no_digits)
 
-        if len(board_data) != 81 and not board_data.isalnum():
-            raise InvalidBoard('File contains invalid data')
+        if len(board_data) != 81 or not board_data.isalnum():
+            raise InvalidBoardException('File contains invalid data')
 
         for i in range(len(board_data)):
             self.board[i] = ord(board_data[i]) - ord('0')
