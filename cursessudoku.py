@@ -49,17 +49,17 @@ class CursesSudoku(object):
             if c == ord('q'):
                 break
             elif c == curses.KEY_UP:
-                if self.active_i > 8:
-                    self.active_i -= 9
+                self.active_i -= 9
+                if self.active_i < 0:
+                    self.active_i += 81
             elif c == curses.KEY_DOWN:
-                if self.active_i < 72:
-                    self.active_i += 9
+                self.active_i += 9
+                if self.active_i >= 81:
+                    self.active_i -= 81
             elif c == curses.KEY_LEFT:
-                if self.active_i % 9 > 0:
-                    self.active_i -= 1
+                self.active_i += -1 if self.active_i % 9 > 0 else 8
             elif c == curses.KEY_RIGHT:
-                if self.active_i % 9 < 8:
-                    self.active_i += 1
+                self.active_i += 1 if self.active_i % 9 < 8 else -8
             elif c == curses.KEY_DC:
                 self.set_value(self.active_i, 0)
             elif ord('1') <= c <= ord('9'):
