@@ -1,3 +1,3 @@
-Sudoku client with Python and Cursed library
+Sudoku client with Python and Curses library
 
 ./cursedsudoku.py --help
