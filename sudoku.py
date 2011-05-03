@@ -41,6 +41,8 @@ class Sudoku(object):
         self.board = [0 for x in range(81)]
 
     def valid_move(self, index, val):
+        if val == 0:
+            return True
         for group in related_groups(index):
             if any(self.board[i] == val for i in group if i != index):
                 return False

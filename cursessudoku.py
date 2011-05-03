@@ -20,8 +20,8 @@ class CursesSudoku(object):
         self.window.refresh()
 
         self.sudoku = sudoku.Sudoku()
-        self.sudoku.load_from_file('data/board01.txt')
-        #self.sudoku.load_from_file('data/inrvalid_board.txt')
+        # self.sudoku.load_from_file('data/board01.txt')
+        # self.sudoku.load_from_file('data/invalid_board.txt')
         self.x = 0
         self.y = 0
 
