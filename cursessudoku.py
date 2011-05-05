@@ -3,6 +3,7 @@
 
 import curses
 import sudoku
+import sudokusolver
 
 class CursesSudoku(object):
     def __init__(self):
@@ -49,7 +50,9 @@ class CursesSudoku(object):
             self.window.move(y, x)
             c = self.window.getch()
             if c == ord('q'):
-                break
+                break # quit
+            elif c == ord('s'):
+                self.solve_board()
             elif c == curses.KEY_UP:
                 self.active_i -= 9
                 if self.active_i < 0:
@@ -76,6 +79,13 @@ class CursesSudoku(object):
         self.window.move(y, x)
         c = '.' if val == 0 else str(val)
         self.window.addch(y, x, ord(c), curses.color_pair(1) | self.PRINT_MODE)
+
+    def solve_board(self):
+        solver = sudokusolver.Solver(self.sudoku)
+        solution_board = solver.solve()
+
+        self.sudoku.board = solution_board
+        self.draw()
 
     def quit(self):
         curses.nocbreak()
