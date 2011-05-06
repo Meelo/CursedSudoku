@@ -3,7 +3,7 @@
 
 # index groups for each row, column and 3x3 box
 ROW_GROUP_INDICES = [range(9 * r, 9 * r + 9) for r in range(9)]
-COL_GROUP_INDICES = [range(r, r + 81, 9) for r in range(9)]
+COL_GROUP_INDICES = [range(c, c + 81, 9) for c in range(9)]
 __BOX_INC = (0, 1, 2, 9, 10, 11, 18, 19, 20)
 __BOX_START = (0, 3, 6, 27, 30, 33, 54, 57, 60)
 BOX_GROUP_INDICES = [[s + i for i in __BOX_INC] for s in __BOX_START]
@@ -32,9 +32,18 @@ for group in _board_groups():
             _in_groups[i] = []
         _in_groups[i].append(group)
 
-def related_groups(i):
+# list of tile index -> index of box tile is in
+in_box = range(81) # prefill
+for box_i, group in enumerate(BOX_GROUP_INDICES):
+    for tile_i in group:
+        in_box[tile_i] = box_i
+
+def related_groups(tile_i):
     """return all index groups which tile index belongs"""
-    return _in_groups[i]
+    return _in_groups[tile_i]
+
+def in_box(tile_i):
+    """return index of box in which tile is"""
 
 class Sudoku(object):
     def __init__(self):
