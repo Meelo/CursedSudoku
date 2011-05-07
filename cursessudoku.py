@@ -3,6 +3,7 @@
 
 import curses
 import sudoku
+import sudokugui as sg
 import sudokusolver
 
 class CursesSudoku(object):
@@ -12,73 +13,52 @@ class CursesSudoku(object):
         curses.noecho()
         curses.cbreak()
         self.stdscr.keypad(1)
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         self.PRINT_MODE = curses.A_NORMAL
 
-        self.window = curses.newwin(13, 13, 0, 0)
+        self.window = curses.newwin(24, 80, 0, 0)
         self.window.border(0,0,0,0,0,0,0,0)
         self.window.keypad(1)
         self.window.refresh()
 
         self.sudoku = sudoku.Sudoku()
-        # self.sudoku.load_from_file('data/board01.txt')
-        # self.sudoku.load_from_file('data/invalid_board.txt')
-        self.x = 0
-        self.y = 0
-
-    def window_xy(self, pos_i):
-        base_y = 1
-        base_x = 1
-        row = pos_i / 9
-        col = pos_i % 9
-        add_y = row / 3
-        add_x = col / 3
-        x = base_x + add_x + col
-        y = base_y + add_y + row
-        return x, y
+        self.sudoku_gui = sg.SudokuGui(self.window, 1, 1, curses.color_pair(2))
 
     def draw(self):
-        for i, val in enumerate(self.sudoku.board):
-            x, y = self.window_xy(i)
-            c = '.' if val == 0 else str(val)
-            self.window.addch(y, x, ord(c), curses.color_pair(1) | self.PRINT_MODE)
+        self.sudoku_gui.draw()
+        self.sudoku_gui.update_content(self.sudoku.board)
 
     def run(self):
-        self.active_i = 0
+        x, y = self.sudoku_gui.get_tile_index()
         while 1:
-            x, y = self.window_xy(self.active_i)
             self.window.move(y, x)
             c = self.window.getch()
             if c == ord('q'):
                 break # quit
             elif c == ord('s'):
                 self.solve_board()
-            elif c == curses.KEY_UP:
-                self.active_i -= 9
-                if self.active_i < 0:
-                    self.active_i += 81
-            elif c == curses.KEY_DOWN:
-                self.active_i += 9
-                if self.active_i >= 81:
-                    self.active_i -= 81
-            elif c == curses.KEY_LEFT:
-                self.active_i += -1 if self.active_i % 9 > 0 else 8
-            elif c == curses.KEY_RIGHT:
-                self.active_i += 1 if self.active_i % 9 < 8 else -8
+            elif c in (curses.KEY_UP, curses.KEY_DOWN,
+                       curses.KEY_LEFT, curses.KEY_RIGHT):
+                x, y = self.sudoku_gui.process_move(c)
             elif c == curses.KEY_DC:
-                self.set_value(self.active_i, 0)
+                i, j = self.sudoku_gui.get_selected_index()
+                self.set_value(i * 9 + j, 0)
             elif ord('1') <= c <= ord('9'):
-                val = c - 48
-                self.set_value(self.active_i, val)
+                val = c - ord('0')
+                i, j = self.sudoku_gui.get_selected_index()
+                self.set_value(i * 9 + j, val)
 
     def set_value(self, i, val):
         if val != 0 and not self.sudoku.valid_move(i, val):
             return
+        x, y = self.sudoku_gui.get_tile_index()
         self.sudoku.board[i] = val
-        x, y = self.window_xy(i)
         self.window.move(y, x)
-        c = '.' if val == 0 else str(val)
-        self.window.addch(y, x, ord(c), curses.color_pair(1) | self.PRINT_MODE)
+        self.sudoku_gui.update_content(self.sudoku.board)
 
     def solve_board(self):
         solver = sudokusolver.Solver(self.sudoku)
@@ -86,6 +66,7 @@ class CursesSudoku(object):
 
         self.sudoku.board = solution_board
         self.draw()
+        self.sudoku_gui.update_content(self.sudoku.board)
 
     def quit(self):
         curses.nocbreak()
