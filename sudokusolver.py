@@ -17,6 +17,8 @@ class Solver(object):
                 continue
             if self.fill_one_possibles_per_group():
                 continue
+            if self.reduce_intergroup_possibles():
+                continue
             break
 
         return self.board
@@ -64,39 +66,110 @@ class Solver(object):
                 filled_this_round += 1
         return filled_this_round
 
-    def possibles_boxlist_by_vline(self, vline_i):
+    def possibles_boxlist_by_column(self, col_i):
         boxes_of_nbr = [set() for i in range(10)] # set of boxes each number can be in
 
-        for tile_i in sudoku.COL_GROUP_INDICES[vline_i]:
+        for tile_i in sudoku.COL_GROUP_INDICES[col_i]:
             box_i = sudoku.in_box[tile_i]
             for nbr in self.possibles[tile_i]:
                 boxes_of_nbr[nbr].add(box_i)
 
         return boxes_of_nbr
 
-    def possibles_boxlist_by_hline(self, hline_i):
+    def possibles_boxlist_by_row(self, row_i):
         boxes_of_nbr = [set() for i in range(10)] # set of boxes each number can be in
 
-        for tile_i in sudoku.ROW_GROUP_INDICES[hline_i]:
+        for tile_i in sudoku.ROW_GROUP_INDICES[row_i]:
             box_i = sudoku.in_box[tile_i]
             for nbr in self.possibles[tile_i]:
                 boxes_of_nbr[nbr].add(box_i)
 
         return boxes_of_nbr
+
+    def possibles_collist_by_box(self, box_i):
+        cols_of_nbr = [set() for i in range(10)] # set of columns each number can be in
+
+        for tile_i in sudoku.BOX_GROUP_INDICES[box_i]:
+            col_i = sudoku.in_col[tile_i]
+            for nbr in self.possibles[tile_i]:
+                cols_of_nbr[nbr].add(col_i)
+
+        return cols_of_nbr
+
+    def possibles_rowlist_by_box(self, box_i):
+        rows_of_nbr = [set() for i in range(10)] # set of rows each number can be in
+
+        for tile_i in sudoku.BOX_GROUP_INDICES[box_i]:
+            row_i = sudoku.in_row[tile_i]
+            for nbr in self.possibles[tile_i]:
+                rows_of_nbr[nbr].add(row_i)
+
+        return rows_of_nbr
 
     def reduce_intergroup_possibles(self):
         """Reduce possibles by checking two related tile groups
 
-        For example: If '4' is missing from vertical line A and all its
-        possible locations on that line are inside 3x3 box X, '4' can't
-        be placed inside X in tiles outside line A.
+        For example: If '4' is missing from column A and all its
+        possible locations on that column are inside 3x3 box X, '4' can't
+        be placed inside X in tiles outside column A.
 
         """
-        for vline_i in range(9):
-            boxes_of_nbr = possibles_boxlist_by_vline(vline_i)
+        reduced_this_round = 0
+
+        for col_i in range(9):
+            boxes_of_nbr = self.possibles_boxlist_by_column(col_i)
             for nbr in range(1, 10):
                 if len(boxes_of_nbr[nbr]) == 1:
-                    # number can be inside only one box on line vline_i
-                    box_i = boxes_of_nbr[nbr][0]
+                    # number can be inside only one box in column col_i
+                    box_i = boxes_of_nbr[nbr].pop()
+                    for tile_i in sudoku.BOX_GROUP_INDICES[box_i]:
+                        # remove nbr from possibles in box outside column col_i
+                        if self.board[tile_i] == 0 and \
+                           sudoku.in_col[tile_i] != col_i and \
+                           nbr in self.possibles[tile_i]:
+                             self.possibles[tile_i].remove(nbr)
+                             reduced_this_round += 1
 
-        pass
+        for row_i in range(9):
+            boxes_of_nbr = self.possibles_boxlist_by_row(row_i)
+            for nbr in range(1, 10):
+                if len(boxes_of_nbr[nbr]) == 1:
+                    # number can be inside only one box in row row_i
+                    box_i = boxes_of_nbr[nbr].pop()
+                    for tile_i in sudoku.BOX_GROUP_INDICES[box_i]:
+                        # remove nbr from possibles in box outside column col_i
+                        if self.board[tile_i] == 0 and \
+                           sudoku.in_row[tile_i] != row_i and \
+                           nbr in self.possibles[tile_i]:
+                             self.possibles[tile_i].remove(nbr)
+                             reduced_this_round += 1
+
+        for box_i in range(9):
+            cols_of_nbr = self.possibles_collist_by_box(box_i)
+            for nbr in range(1, 10):
+                if len(cols_of_nbr[nbr]) == 1:
+                    # number can be in only one column in box box_i
+                    col_i = cols_of_nbr[nbr].pop()
+                    for tile_i in sudoku.COL_GROUP_INDICES[col_i]:
+                        # remove nbr from possibles in column outside box box_i
+                        if self.board[tile_i] == 0 and \
+                           sudoku.in_box[tile_i] != box_i and \
+                           nbr in self.possibles[tile_i]:
+                             self.possibles[tile_i].remove(nbr)
+                             reduced_this_round += 1
+
+        for box_i in range(9):
+            rows_of_nbr = self.possibles_rowlist_by_box(box_i)
+            for nbr in range(1, 10):
+                if len(rows_of_nbr[nbr]) == 1:
+                    # number can be in only one row in box box_i
+                    row_i = rows_of_nbr[nbr].pop()
+                    for tile_i in sudoku.ROW_GROUP_INDICES[row_i]:
+                        # remove nbr from possibles in row outside box box_i
+                        if self.board[tile_i] == 0 and \
+                           sudoku.in_box[tile_i] != box_i and \
+                           nbr in self.possibles[tile_i]:
+                             self.possibles[tile_i].remove(nbr)
+                             reduced_this_round += 1
+
+        return reduced_this_round
