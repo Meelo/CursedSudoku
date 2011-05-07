@@ -165,7 +165,7 @@ class Solver(object):
                     # number can be in only one row in box box_i
                     row_i = rows_of_nbr[nbr].pop()
                     for tile_i in sudoku.ROW_GROUP_INDICES[row_i]:
-                        # remove nbr from possibles in column outside box box_i
+                        # remove nbr from possibles in row outside box box_i
                         if self.board[tile_i] == 0 and \
                            sudoku.in_box[tile_i] != box_i and \
                            nbr in self.possibles[tile_i]:
