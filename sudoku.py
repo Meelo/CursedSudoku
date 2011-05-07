@@ -38,12 +38,21 @@ for box_i, group in enumerate(BOX_GROUP_INDICES):
     for tile_i in group:
         in_box[tile_i] = box_i
 
+# list of tile index -> index of row tile is in
+in_row = range(81) # prefill
+for row_i, group in enumerate(ROW_GROUP_INDICES):
+    for tile_i in group:
+        in_row[tile_i] = row_i
+
+# list of tile index -> index of column tile is in
+in_col = range(81) # prefill
+for col_i, group in enumerate(COL_GROUP_INDICES):
+    for tile_i in group:
+        in_col[tile_i] = col_i
+
 def related_groups(tile_i):
     """return all index groups which tile index belongs"""
     return _in_groups[tile_i]
-
-def in_box(tile_i):
-    """return index of box in which tile is"""
 
 class Sudoku(object):
     def __init__(self):
