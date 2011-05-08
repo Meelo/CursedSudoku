@@ -67,8 +67,9 @@ class Sudoku(object):
         return True
 
     def load_from_file(self, filename):
-        with open(filename, 'r') as f:
-            board_data = f.read()
+        f = open(filename, 'r')
+        board_data = f.read()
+        f.close()
         board_data = [int(c) for c in board_data if c in '0123456789']
 
         if len(board_data) != 81:
